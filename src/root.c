@@ -551,6 +551,31 @@ cleanup:
     }
   }
 
+  if (result && scratch_saved) {
+    static const uint8_t zeros[0x100] = {0};
+    struct { uintptr_t off; size_t len; const char *name; } regions[] = {
+      {FOPS_OFF,      0xE8,  "fops"},
+      {LOCK_OFF,      0x10,  "lock"},
+      {W0_OFF,        0x60,  "w0"},
+      {SCRATCH_OFF,   0x40,  "scratch"},
+      {FAKE_TASK_OFF, 0x100, "task0"},
+      {FAKE_TASK_OFF + 0x100, 0x100, "task1"},
+      {FAKE_TASK_OFF + 0x200, 0x100, "task2"},
+      {FAKE_TASK_OFF + 0x200, 0x100, "task3"},
+      {RIGHT_OFF,     0x10,  "right"},
+      {LEFT_OFF,      0x10,  "left"},
+    };
+    int clean_ok = 1;
+    for (size_t i = 0; i < sizeof(regions)/sizeof(regions[0]); i++) {
+      size_t len = regions[i].len > sizeof(zeros) ? sizeof(zeros) : regions[i].len;
+      if (!root_write_data(fd, page_base + regions[i].off, zeros, len)) {
+        pr_warning("root page cleanup %s failed\n", regions[i].name);
+        clean_ok = 0;
+      }
+    }
+    pr_info("root page cleanup ok=%d\n", clean_ok);
+  }
+
   if (!result && selinux_changed && (!published || complete_done)) {
     uint8_t current = 0xff;
     int read_ok = root_read_global(fd, selinux_addr, &current,

@@ -1085,15 +1085,6 @@ static void slide_build_fake_waiter(unsigned char *payload,
 }
 #endif
 
-__attribute__((noinline)) static void slide_pselect_cleanup(int nfds) {
-  fd_set z_in, z_out, z_ex;
-  FD_ZERO(&z_in);
-  FD_ZERO(&z_out);
-  FD_ZERO(&z_ex);
-  struct timespec z_t = {.tv_sec = 0, .tv_nsec = 200000000L};
-  (void)syscall(SYS_pselect6, nfds, &z_in, &z_out, &z_ex, &z_t, NULL);
-}
-
 #if !defined(SLIDE_STACK_WRITER)
 RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
   if (!page_base || !fake_lock || !fake_w0) {
