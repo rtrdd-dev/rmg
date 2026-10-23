@@ -173,7 +173,6 @@ static atomic_int slide_consume_last_sched_errno;
 static atomic_int slide_consumer_ready;
 static atomic_int slide_stack_write_window;
 static atomic_int slide_pselect_write_window;
-static atomic_int slide_wake_timerfd = -1;
 #if defined(APP_S928_ROUTE_DIAG) && APP_S928_ROUTE_DIAG
 static atomic_int slide_pselect_last_ret;
 static atomic_int slide_pselect_last_errno;
@@ -1160,12 +1159,10 @@ RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
 #if !(defined(APP_S928_STABLE_RACE) && APP_S928_STABLE_RACE)
   atomic_store(&slide_consume_go, 1);
 #endif
-  atomic_store(&slide_wake_timerfd, block_fd);
   errno = 0;
   int ret = (int)syscall(SYS_pselect6, slide_route_nfds,
                          &in, &out, &ex, timeoutp, NULL);
   int saved_errno = errno;
-  atomic_store(&slide_wake_timerfd, -1);
   size_t pselect_elapsed_usec =
       (gettime_ns() - pselect_started) / 1000ULL;
 #if defined(APP_S928_ROUTE_DIAG) && APP_S928_ROUTE_DIAG
@@ -1817,15 +1814,6 @@ void *slide_consumer_thread(void *arg __attribute__((unused))) {
     *errno_ptr = 0;
     long ret = sched_setattr_tid(tid, (calls % 19) + 1);
     int saved_errno = *errno_ptr;
-    {
-      int wfd = atomic_load(&slide_wake_timerfd);
-      if (wfd >= 0) {
-        struct itimerspec its;
-        memset(&its, 0, sizeof(its));
-        its.it_value.tv_nsec = 1;
-        (void)syscall(SYS_timerfd_settime, wfd, 0, &its, NULL);
-      }
-    }
 #if defined(SLIDE_SYNC_PSELECT_SYSCALL) && SLIDE_SYNC_PSELECT_SYSCALL
     pr_info("slide pselect blocked ready=%d ready_usec=%zu ready_wchan=%s "
             "guard=%d guard_usec=%zu guard_wchan=%s age_usec=%llu tid=%d\n",
