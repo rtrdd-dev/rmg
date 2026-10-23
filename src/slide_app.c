@@ -1218,8 +1218,6 @@ RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
   atomic_store(&slide_stack_write_window,
                ret > 0 && atomic_load(&slide_consume_sched_ok) > 0);
 
-  slide_pselect_cleanup(slide_route_nfds);
-
   close(high_read);
   if (block_fd != pipefd[0]) {
     close(block_fd);
