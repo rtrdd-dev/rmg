@@ -144,8 +144,7 @@
         "kmi": "android15-6.6",
         "managerPackage": "me.weishu.kernelsu"
       }
-    }
-    ,
+    },
     {
       "profileId": "s25fe-S731U1UES7BZF3",
       "manufacturer": "samsung",
@@ -164,8 +163,8 @@
         "size": 104128
       },
       "kernelsu": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-samsung-android14-6.1-kdp",
-        "size": 6532168,
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
+        "size": 4781464,
         "kmi": "android14-6.1",
         "managerPackage": "me.weishu.kernelsu"
       }
