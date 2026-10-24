@@ -37,6 +37,51 @@ static void close_p0_gate_holders(void) {
   }
   p0_gate_holders_initialized = 0;
 }
+
+void close_non_critical_pipes(int keep_index) {
+  int closed_reclaim = 0, closed_gate = 0, closed_drain = 0;
+  for (size_t i = 0; i < PIPE_RECLAIM; i++) {
+    if ((int)i == keep_index) {
+      continue;
+    }
+    if (pipe_fds_reclaim[i][0] >= 0) {
+      close(pipe_fds_reclaim[i][0]);
+      pipe_fds_reclaim[i][0] = -1;
+      closed_reclaim++;
+    }
+    if (pipe_fds_reclaim[i][1] >= 0) {
+      close(pipe_fds_reclaim[i][1]);
+      pipe_fds_reclaim[i][1] = -1;
+      closed_reclaim++;
+    }
+    if (p0_gate_holders_initialized) {
+      if (p0_gate_holders[i][0] >= 0) {
+        close(p0_gate_holders[i][0]);
+        p0_gate_holders[i][0] = -1;
+        closed_gate++;
+      }
+      if (p0_gate_holders[i][1] >= 0) {
+        close(p0_gate_holders[i][1]);
+        p0_gate_holders[i][1] = -1;
+        closed_gate++;
+      }
+    }
+  }
+  for (size_t i = 0; i < PIPE_DRAIN; i++) {
+    if (pipe_fds_drain[i][0] >= 0) {
+      close(pipe_fds_drain[i][0]);
+      pipe_fds_drain[i][0] = -1;
+      closed_drain++;
+    }
+    if (pipe_fds_drain[i][1] >= 0) {
+      close(pipe_fds_drain[i][1]);
+      pipe_fds_drain[i][1] = -1;
+      closed_drain++;
+    }
+  }
+  pr_info("fd-cleanup: closed reclaim=%d gate=%d drain=%d kept_index=%d\n",
+          closed_reclaim, closed_gate, closed_drain, keep_index);
+}
 #endif
 #endif
 

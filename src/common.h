@@ -477,6 +477,7 @@ uint64_t scan_p0_virtual_base_pointer(void);
 int restore_p0_oracle_pages(int fd);
 int run_p0_pipe_oracle_diagnostic(int fd);
 void start_p0_ref_keeper(void);
+void close_non_critical_pipes(int keep_index);
 #endif
 
 int install_android_root(int fd);
