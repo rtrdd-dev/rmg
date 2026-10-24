@@ -576,6 +576,24 @@ cleanup:
     pr_info("root page cleanup ok=%d\n", clean_ok);
   }
 
+  if (result) {
+    uintptr_t pages[] = {p0_probe_page_struct, p0_gate_page_struct};
+    for (size_t i = 0; i < sizeof(pages)/sizeof(pages[0]); i++) {
+      if (pages[i] == 0) continue;
+      uintptr_t phys = ((pages[i] - VMEMMAP_START) / STRUCT_PAGE_SIZE) << 12;
+      if (phys >= P0_PHYS_OFFSET) continue;
+      uint32_t rc = 0;
+      uintptr_t rc_addr = pages[i] + 0x34;
+      if (root_read_data(fd, rc_addr, &rc, sizeof(rc)) &&
+          rc < 128) {
+        uint32_t safe = 256;
+        root_write_data(fd, rc_addr, &safe, sizeof(safe));
+        pr_info("root pinned non-DRAM page %016zx phys=%09llx refcount %u->%u\n",
+                pages[i], (unsigned long long)phys, rc, safe);
+      }
+    }
+  }
+
   if (!result && selinux_changed && (!published || complete_done)) {
     uint8_t current = 0xff;
     int read_ok = root_read_global(fd, selinux_addr, &current,
