@@ -582,12 +582,14 @@ cleanup:
     uintptr_t probe_page = VMEMMAP_START + probe_pfn * STRUCT_PAGE_SIZE;
     uintptr_t probe_rc_addr = probe_page + 0x34;
     uint32_t rc = 0;
-    if (root_read_global(fd, probe_rc_addr, &rc, sizeof(rc))) {
+    pr_info("root probe pin target PFN=%zx page=%016zx rc_addr=%016zx\n",
+            (size_t)probe_pfn, probe_page, probe_rc_addr);
+    int read_ok = root_read_global(fd, probe_rc_addr, &rc, sizeof(rc));
+    pr_info("root probe pin read=%d rc=%u\n", read_ok, rc);
+    if (read_ok) {
       uint32_t safe = 256;
-      if (root_write_global(fd, probe_rc_addr, &safe, sizeof(safe))) {
-        pr_info("root pinned probe PFN %zx refcount %u->%u\n",
-                (size_t)probe_pfn, rc, safe);
-      }
+      int write_ok = root_write_global(fd, probe_rc_addr, &safe, sizeof(safe));
+      pr_info("root probe pin write=%d %u->%u\n", write_ok, rc, safe);
     }
 #endif
   }
