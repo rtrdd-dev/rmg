@@ -184,7 +184,7 @@
       "pageSize": 4096,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
-        "size": 144552
+        "size": 144752
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
