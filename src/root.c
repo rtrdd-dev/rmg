@@ -504,6 +504,17 @@ static int install_workqueue_umh_root(int fd) {
           wake_ok, complete_done, umh_retval, socket_ok);
   result = socket_ok;
 
+  if (result) {
+    int poo_fd = open("/proc/sys/kernel/panic_on_oops", O_WRONLY);
+    if (poo_fd >= 0) {
+      int w = write(poo_fd, "0\n", 2);
+      close(poo_fd);
+      pr_info("panic_on_oops set to 0 (write=%d)\n", w);
+    } else {
+      pr_warning("panic_on_oops open failed errno=%d\n", errno);
+    }
+  }
+
 cleanup:
   if (!published) {
     int rollback_ok = 1;
