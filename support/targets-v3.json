@@ -379,18 +379,19 @@
         "SM-S731U1"
       ],
       "kernelVersions": [
-        "6.1.157-android14-11"
+        "6.1.157-android14-11",
+        "6.1.157"
       ],
       "requiresFreshP0Session": true,
       "exploit": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase3/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase5/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
         "size": 103088,
         "sha256": "227d5fb98e6f2e41d6390ad78595ff1f93ee1cb09cfaf52c3fa9502339aa78f4"
       },
       "kernelsu": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase3/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
-        "size": 5170632,
-        "sha256": "b88c62d1da84e3b87201349f5c0eba20e4cf4050bcdc165e768bffdefb0e82ee",
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase5/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
+        "size": 4781464,
+        "sha256": "a9d58a803432432b6399b77740731cffc18332996bb59154255f97e67ee28b89",
         "version": "3.2.5"
       }
     },
