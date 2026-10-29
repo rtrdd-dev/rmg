@@ -41,7 +41,7 @@
       ],
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/pa3q-S938NKSUACZF1/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25u-kdp",
@@ -151,7 +151,7 @@
       ],
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e3q-S928USQS6DZF2/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e3q-S928USQS6DZF2-kdp",
@@ -169,7 +169,7 @@
       ],
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e3q-S928BXXS6DZF2/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e3q-S928BXXS6DZF2-kdp",
@@ -188,7 +188,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e2s-S926BXXUEDZDR/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e2s-S926BXXUEDZDR-kdp",
@@ -207,7 +207,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e1s-S921BXXSFDZE1/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e1s-S921BXXSFDZE1-kdp",
@@ -230,7 +230,7 @@
       ],
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/essi-A566EXXSCCZG6/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-A566EXXSCCZG6-kdp",
@@ -286,7 +286,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/a53x-A536EXXSNGZG3/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-A536EXXSNGZG3-kdp",
@@ -328,7 +328,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e1s-S921NKSSFDZF3/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e1s-S921NKSSFDZF3-kdp",
@@ -365,7 +365,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
@@ -385,8 +385,8 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
-        "size": 104128,
-        "sha256": "a6fc08626e9fdfc3bbfb8e36629ad34286ceacef455234560e7c9488622d34d3"
+        "size": 110224,
+        "sha256": "287cb173b47bc4a2542c8947b4439f4e389c0ae9b7f3f67707c91045ae58e3f8"
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
@@ -407,7 +407,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/r12s-S721BXXSCDZF3/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-r12s-S721BXXSCDZF3-kdp",
@@ -445,7 +445,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/e3q-S9280ZCS6DZF2/cve-2026-43499-app.so",
-        "size": 104128
+        "size": 110224
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e3q-S9280ZCS6DZF2-kdp",
