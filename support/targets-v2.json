@@ -183,12 +183,12 @@
       "abi": "arm64-v8a",
       "pageSize": 4096,
       "exploit": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase6/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
         "size": 104128,
-        "sha256": "3c459c1353ffbcf199299e286cf3567d1f65d834590bb5ed4a6e8afee26d056d"
+        "sha256": "a6fc08626e9fdfc3bbfb8e36629ad34286ceacef455234560e7c9488622d34d3"
       },
       "kernelsu": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/phase6/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
         "size": 4781464,
         "sha256": "a9d58a803432432b6399b77740731cffc18332996bb59154255f97e67ee28b89",
         "kmi": "android14-6.1",
