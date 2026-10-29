@@ -4,6 +4,7 @@
 #if defined(APP_PAYLOAD) && APP_PAYLOAD
 #define BUILD_VARIANT_LABEL \
   "s25fe-S731U1UES7BZF3-stable-app-production-slide8-fops8"
+#define APP_DEFAULT_FAST_KSNITCH 1
 #define APP_PHYS_P0_ORACLE 1
 #define APP_REQUIRE_FRESH_P0_SESSION 1
 #define APP_FOPS_DATA_ALIAS_DIAG_ONLY 1
