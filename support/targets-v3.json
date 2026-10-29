@@ -385,8 +385,8 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
-        "size": 110368,
-        "sha256": "dff61056cf475c2c0e3dc1ae5490543bd4c9da47966738d3d66de9567123d927"
+        "size": 110528,
+        "sha256": "880daf1bccd4acb40b1f8b0e3632294b98cbdc3c5b2770ded8fcc0439a335340"
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",

