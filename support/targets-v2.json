@@ -146,31 +146,7 @@
       }
     },
     {
-      "profileId": "s25fe-S731U1UES7BZF3",
-      "manufacturer": "samsung",
-      "model": "SM-S731U1",
-      "device": "r13s",
-      "kernelRelease": "6.1.157-android14-11",
-      "kernelVersion": "Linux version 6.1.157-android14-11 (build-user@build-host) (Android (10087095, +pgo, +bolt, +lto, -mlgo, based on r487747c) clang version 17.0.2 (https://android.googlesource.com/toolchain/llvm-project d9f89f4d16663d5012e5c09495f3b30ece3d2362), LLD 17.0.2) #1 SMP PREEMPT Thu Jun 11 06:11:25 UTC 2026",
-      "kernelBuildVersion": "#1 SMP PREEMPT Thu Jun 11 06:11:25 UTC 2026",
-      "buildDisplay": "BP4A.251205.006.S731U1UES7BZF3",
-      "buildFingerprint": "samsung/r13sue/r13s:16/BP4A.251205.006/S731U1UES7BZF3:user/release-keys",
-      "sdk": 36,
-      "abi": "arm64-v8a",
-      "pageSize": 4096,
-      "exploit": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3/cve-2026-43499-app.so",
-        "size": 110224
-      },
-      "kernelsu": {
-        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
-        "size": 4781464,
-        "kmi": "android14-6.1",
-        "managerPackage": "me.weishu.kernelsu"
-      }
-    },
-    {
-      "profileId": "s25fe-S731U1UES7BZF3-stable",
+      "profileId": "s25fe-S731U1UES7BZF3-ksu325",
       "manufacturer": "samsung",
       "model": "SM-S731U1",
       "device": "r13s",
@@ -191,6 +167,32 @@
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
         "size": 4781464,
         "sha256": "a9d58a803432432b6399b77740731cffc18332996bb59154255f97e67ee28b89",
+        "kmi": "android14-6.1",
+        "managerPackage": "me.weishu.kernelsu"
+      }
+    },
+    {
+      "profileId": "s25fe-S731U1UES7BZF3-ksu331",
+      "manufacturer": "samsung",
+      "model": "SM-S731U1",
+      "device": "r13s",
+      "kernelRelease": "6.1.157-android14-11",
+      "kernelVersion": "Linux version 6.1.157-android14-11 (build-user@build-host) (Android (10087095, +pgo, +bolt, +lto, -mlgo, based on r487747c) clang version 17.0.2 (https://android.googlesource.com/toolchain/llvm-project d9f89f4d16663d5012e5c09495f3b30ece3d2362), LLD 17.0.2) #1 SMP PREEMPT Thu Jun 11 06:11:25 UTC 2026",
+      "kernelBuildVersion": "#1 SMP PREEMPT Thu Jun 11 06:11:25 UTC 2026",
+      "buildDisplay": "BP4A.251205.006.S731U1UES7BZF3",
+      "buildFingerprint": "samsung/r13sue/r13s:16/BP4A.251205.006/S731U1UES7BZF3:user/release-keys",
+      "sdk": 36,
+      "abi": "arm64-v8a",
+      "pageSize": 4096,
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
+        "size": 110528,
+        "sha256": "880daf1bccd4acb40b1f8b0e3632294b98cbdc3c5b2770ded8fcc0439a335340"
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp-v3.3.1",
+        "size": 6942552,
+        "sha256": "e7f3e29d5f2f80a99150c31b4ca6cb1ea602a48f3db83ad25b7a458db4a916be",
         "kmi": "android14-6.1",
         "managerPackage": "me.weishu.kernelsu"
       }
