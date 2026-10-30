@@ -161,7 +161,7 @@
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
         "size": 110528,
-        "sha256": "880daf1bccd4acb40b1f8b0e3632294b98cbdc3c5b2770ded8fcc0439a335340"
+        "sha256": "7a9f1809b26d63eb5b9eee712cfb51030d8acfd91945b3079e71e288594b7128"
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp",
@@ -187,7 +187,7 @@
       "exploit": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/s25fe-S731U1UES7BZF3-stable/cve-2026-43499-app.so",
         "size": 110528,
-        "sha256": "880daf1bccd4acb40b1f8b0e3632294b98cbdc3c5b2770ded8fcc0439a335340"
+        "sha256": "7a9f1809b26d63eb5b9eee712cfb51030d8acfd91945b3079e71e288594b7128"
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp-v3.3.1",
