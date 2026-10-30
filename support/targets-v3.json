@@ -395,7 +395,7 @@
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp-v3.3.1",
         "size": 5179760,
-        "sha256": "38eb79292d9458ff8a7a64b5435c49ecdc0ed861e03590b0eac56e38bfc54652",
+        "sha256": "f7cfc4a17210ea1e637450859f92bab39d905b923555584f01c625f7fce3133f",
         "version": "3.3.1"
       }
     },
