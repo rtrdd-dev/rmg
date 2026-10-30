@@ -1000,7 +1000,7 @@ int try_cfi_stage(void) {
     goto fail;
   }
 
-#if 0
+#if defined(ASHMEM_MUTEX_OFF)
   run_post_exploit_repair(fd);
 #endif
 
