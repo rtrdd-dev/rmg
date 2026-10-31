@@ -191,8 +191,8 @@
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp-v3.3.1",
-        "size": 5179760,
-        "sha256": "f7cfc4a17210ea1e637450859f92bab39d905b923555584f01c625f7fce3133f",
+        "size": 4736536,
+        "sha256": "8855a20314106e4d6b6746b00851b7974f8afe734a7d4893cb024f5661a31a7a",
         "kmi": "android14-6.1",
         "managerPackage": "me.weishu.kernelsu"
       }
