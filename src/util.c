@@ -67,7 +67,7 @@ static void configure_kernelsnitch_profile(
    * consumer.  Explicit variables make hardware A/B testing possible without
    * producing a new payload for every sample count.
    */
-  if (rmg_fast_profile_enabled()) {
+  if (rmg_fast_profile_enabled() && payload_mode != PAGE_PAYLOAD_SLIDE) {
     appended_futexes = SLIDE_KSNITCH_APPENDED_FUTEXES;
     if (repeat_measurement > 32) {
       repeat_measurement = 32;
