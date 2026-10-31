@@ -455,6 +455,26 @@
         "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-e3q-S9280ZCS6DZF2-kdp",
         "size": 4879856
       }
+    },
+    {                                                            "payloadId": "r13s-S731U1UES7BZF3",
+      "displayName": "S25 FE (MocLG) | Kernel 6.1.157",
+      "models": [
+        "SM-S731U1"
+      ],
+      "kernelVersions": [
+        "6.1.157-android14-11",
+        "6.1.157"
+      ],
+      "requiresFreshP0Session": true,                            "exploit": {                                                 "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/artifacts/r13s-S731U1UES7BZF3/cve-2026-43499-app.so",
+        "size": 151160,
+        "sha256": "e5149058f9ce00decb3fc427bb3e48b849f8d1a9d985ecbe9f6a913bb7100ade"
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/rtrdd-dev/rmg/main/kernelsu/ksud-s25fe-S731U1UES7BZF3-kdp-v3.3.1",
+        "size": 4736536,
+        "sha256": "8855a20314106e4d6b6746b00851b7974f8afe734a7d4893cb024f5661a31a7a",
+        "version": "3.3.1"
+      }
     }
   ]
 }
